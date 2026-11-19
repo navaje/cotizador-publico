@@ -21,6 +21,12 @@ Panel de trabajo de Ojo Jarocho: presupuestos, notas de venta, enlace con SYSCOM
 - Se suben en lotes de hasta 10 via `visita_fotos_subir.php` (el cliente las comprime a 1600 px antes de enviar). Se leen GPS EXIF cuando la foto lo trae y se puede ligar cada foto a un punto (CAM-01...).
 - Los planos se guardan en `app/storage/planos/` con tabla `oj_planos` y solo se sirven via `plano/ver.php?id=N` verificando dueño. Los planos viejos en `plano/planos/` quedaron bloqueados por `.htaccess`.
 
+## Datos bancarios y calculadora de disco
+
+- Los datos de pago (banco, cuenta, CLABE) ya NO viven en el código: se capturan en `config_empresa.php` y quedan en la tabla `empresa` (columnas `banco/cuenta/clabe`, vía `oj_emp_upgrade`). La cotización los inserta en las condiciones solo si están capturados.
+- `index.php` incluye calculadora de almacenamiento CCTV (`assets/calculadora_disco.js`): cámaras × resolución × fps × días × modo → GB/día, TB totales y disco recomendado, con botón para agregar el renglón a la cotización.
+- En el panel SYSCOM hay acceso rápido a los últimos 8 conceptos agregados (localStorage del navegador).
+
 ## Seguridad
 
 - El repositorio debe ser **privado**.

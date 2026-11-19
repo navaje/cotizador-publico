@@ -1,20 +1,20 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/app/empresa.php';
+oj_emp_upgrade($pdo);
 
 $mensaje = '';
 $error = '';
 
-$stmt = $pdo->query("SELECT * FROM empresa ORDER BY id ASC LIMIT 1");
-$empresa = $stmt->fetch();
+$empresa = oj_emp_leer($pdo);
 
 if (!$empresa) {
     $pdo->exec("
-        INSERT INTO empresa (nombre, telefono, email, web, direccion, logo)
-        VALUES ('Ojo Jarocho', '', '', '', '', 'assets/logo.png')
+        INSERT INTO empresa (nombre, telefono, email, web, direccion, logo, banco, cuenta, clabe)
+        VALUES ('Ojo Jarocho', '', '', '', '', 'assets/logo.png', '', '', '')
     ");
-    $stmt = $pdo->query("SELECT * FROM empresa ORDER BY id ASC LIMIT 1");
-    $empresa = $stmt->fetch();
+    $empresa = oj_emp_leer($pdo);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,6 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $web = trim($_POST['web'] ?? '');
     $direccion = trim($_POST['direccion'] ?? '');
+    $banco = trim($_POST['banco'] ?? '');
+    $cuenta = trim($_POST['cuenta'] ?? '');
+    $clabe = trim($_POST['clabe'] ?? '');
+    if (strlen($banco) > 80 || strlen($cuenta) > 40 || strlen($clabe) > 18) $error = 'Revisa la longitud de los datos bancarios.';
+    if ($error === '' && $cuenta !== '' && !preg_match('/^[0-9]{6,40}$/D', $cuenta)) $error = 'La cuenta solo admite dígitos (6 a 40).';
+    if ($error === '' && $clabe !== '' && !preg_match('/^[0-9]{18}$/D', $clabe)) $error = 'La CLABE debe tener 18 dígitos.';
     $logoActual = $empresa['logo'] ?? 'assets/logo.png';
     $logoRuta = $logoActual;
 
@@ -69,7 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 email = :email,
                 web = :web,
                 direccion = :direccion,
-                logo = :logo
+                logo = :logo,
+                banco = :banco,
+                cuenta = :cuenta,
+                clabe = :clabe
             WHERE id = :id
         ");
 
@@ -80,13 +89,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':web' => $web,
             ':direccion' => $direccion,
             ':logo' => $logoRuta,
+            ':banco' => $banco,
+            ':cuenta' => $cuenta,
+            ':clabe' => $clabe,
             ':id' => $empresa['id']
         ]);
 
         $mensaje = 'Datos de la empresa actualizados correctamente.';
 
-        $stmt = $pdo->query("SELECT * FROM empresa ORDER BY id ASC LIMIT 1");
-        $empresa = $stmt->fetch();
+        $empresa = oj_emp_leer($pdo);
     }
 }
 ?>
@@ -240,6 +251,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div>
                         <label>Sitio web</label>
                         <input type="text" name="web" value="<?php echo htmlspecialchars($empresa['web'] ?? ''); ?>">
+                    </div>
+
+                    <div>
+                        <label>Banco (datos para pagos)</label>
+                        <input type="text" name="banco" maxlength="80" value="<?php echo htmlspecialchars($empresa['banco'] ?? ''); ?>">
+                    </div>
+
+                    <div>
+                        <label>Cuenta bancaria</label>
+                        <input type="text" name="cuenta" maxlength="40" inputmode="numeric" value="<?php echo htmlspecialchars($empresa['cuenta'] ?? ''); ?>">
+                    </div>
+
+                    <div>
+                        <label>CLABE interbancaria (18 dígitos)</label>
+                        <input type="text" name="clabe" maxlength="18" inputmode="numeric" value="<?php echo htmlspecialchars($empresa['clabe'] ?? ''); ?>">
                     </div>
 
                     <div class="full">

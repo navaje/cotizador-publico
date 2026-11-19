@@ -2,9 +2,10 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/app/descuentos.php';
+require_once __DIR__ . '/app/empresa.php';
 
-$stmtEmpresa = $pdo->query("SELECT * FROM empresa LIMIT 1");
-$empresa = $stmtEmpresa->fetch();
+$empresa = oj_emp_leer($pdo);
+$bancoTexto = oj_emp_datos_banco($empresa);
 
 $solicitud = null;
 $copia = null;
@@ -278,7 +279,7 @@ if ($copia) {
 
           <div class="full">
             <label>Condiciones</label>
-            <textarea name="condiciones"><?php echo htmlspecialchars((string)($copia['condiciones'] ?? 'La presente cotización está sujeta a disponibilidad de equipo. Los precios pueden cambiar sin previo aviso. El servicio de instalación se agenda una vez confirmado el anticipo(50%) o pago acordado.Banco: Banorte. Cuenta: 4189140075564483. Clabe interbancaria: 072910012172856793'), ENT_QUOTES, 'UTF-8'); ?></textarea>
+            <textarea name="condiciones"><?php echo htmlspecialchars((string)($copia['condiciones'] ?? ('La presente cotización está sujeta a disponibilidad de equipo. Los precios pueden cambiar sin previo aviso. El servicio de instalación se agenda una vez confirmado el anticipo (50%) o pago acordado.' . ($bancoTexto !== '' ? ' ' . $bancoTexto : ''))), ENT_QUOTES, 'UTF-8'); ?></textarea>
           </div>
         </div>
       </div>
@@ -317,6 +318,25 @@ if ($copia) {
           <p class="ayuda" id="calcCatalogoEstado" role="status">Guardar el concepto no agrega un renglón ni guarda el borrador de la propuesta.</p>
         </details>
       </div>
+      <div class="section calculadora" id="calcDisco">
+        <h2>Calculadora de almacenamiento (CCTV)</h2>
+        <p class="ayuda">Estima GB/día y sugiere el disco según cámaras, resolución, fps, días de retención y modo de grabación.</p>
+        <div class="grid-3">
+          <div><label for="dCam">Cámaras</label><input id="dCam" type="number" min="1" max="256" step="1" value="4"></div>
+          <div><label for="dRes">Resolución</label><select id="dRes"><option value="2">2 MP (1080p)</option><option value="4">4 MP</option><option value="5">5 MP</option><option value="8" selected>8 MP (4K)</option></select></div>
+          <div><label for="dFps">FPS por cámara</label><input id="dFps" type="number" min="1" max="60" step="1" value="15"></div>
+          <div><label for="dDias">Días de retención</label><input id="dDias" type="number" min="1" max="3650" step="1" value="30"></div>
+          <div><label for="dModo">Grabación</label><select id="dModo"><option value="1" selected>Continua</option><option value="0.35">Por movimiento (~35%)</option><option value="0.15">Por eventos (~15%)</option></select></div>
+          <div><label for="dPrecio">Precio de venta del disco (MXN sin IVA)</label><input id="dPrecio" type="number" min="0" step="0.01" value="0"></div>
+        </div>
+        <p class="ayuda" id="dExplicacion"></p>
+        <div class="resumen-calc" aria-live="polite">
+          <div>Estimación <strong id="dGbDia">—</strong> GB/día</div>
+          <div>Total estimado <strong id="dTb">—</strong> TB</div>
+          <div>Disco recomendado <strong id="dDisco">—</strong></div>
+        </div>
+        <div class="actions"><button type="button" class="btn btn-primary" id="dAgregar">Agregar disco a la cotización</button></div>
+      </div>
       <div class="section">
         <h2>Agregar desde mis conceptos</h2>
         <p class="ayuda">Busca un producto o servicio guardado. Se agrega con su precio unitario sin IVA y puedes ajustarlo en la tabla.</p>
@@ -341,6 +361,7 @@ if ($copia) {
           <div><label for="syscomCategoria">Categoría del CSV</label><select id="syscomCategoria"><option value="">Todas</option></select></div>
           <div><label for="syscomVeracruz"><input type="checkbox" id="syscomVeracruz"> Sólo existencia Veracruz</label></div>
         </div>
+        <div class="syscom-acciones" id="syscomRecientes" hidden></div>
         <div class="syscom-acciones"><button type="button" class="syscom-btn" id="syscomBuscar">Buscar en catálogo CSV</button><a class="syscom-btn syscom-secundario" href="syscom.php" target="_blank" rel="noopener">Importar / actualizar catálogo</a><a class="syscom-btn syscom-secundario" href="syscom_conexion.php" target="_blank" rel="noopener">Conectar API SYSCOM</a></div>
         <p class="syscom-ayuda" id="syscomFuente"></p><p id="syscomEstado" role="status"></p><div id="syscomResultados"></div>
         <div class="syscom-acciones" id="syscomPaginacion" hidden><button type="button" class="syscom-btn syscom-secundario" id="syscomPaginaAnterior">Anterior</button><span id="syscomPaginaActual"></span><button type="button" class="syscom-btn syscom-secundario" id="syscomPaginaSiguiente">Siguiente</button></div>
@@ -445,6 +466,7 @@ if ($copia) {
 <script src="assets/catalogo.js?v=20261016"></script>
 <script src="assets/clientes.js?v=20261016-54"></script>
 <script src="assets/calculadora_catalogo.js?v=20261016-55"></script>
+<script src="assets/calculadora_disco.js?v=1"></script>
 <script src="assets/aviso_guardado.js?v=20261016-58"></script>
 <script src="assets/cotizador_movil.js?v=20261016-59"></script>
 <script src="assets/syscom_comun.js?v=20261018-5121"></script>
