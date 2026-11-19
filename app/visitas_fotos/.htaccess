@@ -1,0 +1,8 @@
+# Evidencias de visitas: no se sirven directo; solo via visita_foto.php con sesion.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>
