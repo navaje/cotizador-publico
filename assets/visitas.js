@@ -5,7 +5,6 @@
  const schema=JSON.parse(document.getElementById('visita-schema').textContent);
  const editor=document.getElementById('visita-editor'),form=document.getElementById('visita-form');
  let dirty=document.getElementById('save-status').textContent.includes('sin guardar'),busy=false;
- const photoJobs=new Set();
  const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
  const icons={
   Casa:'M3 11 12 3l9 8M5 10v11h14V10M9 21v-7h6v7',Departamento:'M5 21V3h14v18M9 7h1m4 0h1M9 11h1m4 0h1M9 15h1m4 0h1',Comercio:'M3 10V5h18v5M3 10c0 3 4 3 4 0 0 3 5 3 5 0 0 3 5 3 5 0 0 3 4 3 4 0M5 13v8h14v-8M9 21v-6h6v6',Oficina:'M4 21V3h16v18M8 7h8M8 11h8M8 15h8',Bodega:'M3 21V9l9-6 9 6v12M7 21V11h10v10M7 15h10M7 18h10',Industria:'M3 21V10l6 3V8l7 5V3h4v18ZM7 17h1m4 0h1m4 0h1',
@@ -57,10 +56,64 @@
   const out=document.getElementById('visita-pending');out.replaceChildren();if(pending.length){const ul=el('ul');for(const msg of pending)ul.append(el('li',msg));out.append(ul);}else out.append(el('p','Datos principales capturados. El servidor comprobará también los recorridos y materiales al guardar como listo.','ok'));
  }
  document.getElementById('client-search').addEventListener('click',async()=>{const target=document.getElementById('client-results');target.textContent='Buscando…';try{const response=await fetch('clientes_buscar.php?q='+encodeURIComponent(document.getElementById('client-query').value),{credentials:'same-origin'});const data=await response.json();if(!response.ok)throw Error(data.error||'No se pudo buscar.');target.replaceChildren();for(const client of data.items){const b=el('button',client.nombre+' · '+client.telefono);b.type='button';b.addEventListener('click',()=>{if(!confirm('¿Completar nombre, teléfono, correo y dirección con esta ficha?'))return;state.cliente_id=client.id;for(const f of ['nombre','telefono','email','direccion'])state.general['cliente_'+f]=client[f];changed();render();target.textContent='Cliente seleccionado. Puedes ajustar la dirección de esta visita.';});target.append(b);}if(!data.items.length)target.textContent='Sin coincidencias. Puedes capturar el cliente manualmente.';if(data.hay_mas)target.append(el('p','Hay más resultados. Acota la búsqueda.'));}catch(e){target.textContent=e.message;}});
- for(const input of document.querySelectorAll('.photo-input'))input.addEventListener('change',()=>{changed();if(!input.files[0])return;const job=(async()=>{const file=input.files[0];if(!['image/jpeg','image/png'].includes(file.type))throw Error('Usa JPG o PNG.');if(!window.createImageBitmap||!window.DataTransfer){if(file.size>2097152)throw Error('Reduce la foto a menos de 2 MB.');return;}const bmp=await createImageBitmap(file);const ratio=Math.min(1,1600/Math.max(bmp.width,bmp.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bmp.width*ratio));canvas.height=Math.max(1,Math.round(bmp.height*ratio));const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bmp,0,0,canvas.width,canvas.height);bmp.close();const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.82));if(!blob||blob.size>2097152)throw Error('La foto sigue superando 2 MB. Redúcela antes de adjuntarla.');const dt=new DataTransfer();dt.items.add(new File([blob],'evidencia.jpg',{type:'image/jpeg'}));input.files=dt.files;})().catch(e=>{input.value='';alert(e.message||'No se pudo preparar la foto.');}).finally(()=>photoJobs.delete(job));photoJobs.add(job);});
+ const fotoInput=document.getElementById('foto-multiple'),queueEl=document.getElementById('foto-queue'),btnFotos=document.getElementById('btn-fotos'),btnSubir=document.getElementById('btn-subir-fotos'),fotoStatus=document.getElementById('foto-status');
+ const fotoQueue=[];
+ async function comprimirFoto(file){
+  if(!['image/jpeg','image/png'].includes(file.type))throw Error('Usa JPG o PNG.');
+  if(!window.createImageBitmap){if(file.size>2097152)throw Error('Reduce la foto a menos de 2 MB.');return file;}
+  const bmp=await createImageBitmap(file);
+  const ratio=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(bmp.width*ratio));canvas.height=Math.max(1,Math.round(bmp.height*ratio));
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bmp,0,0,canvas.width,canvas.height);bmp.close();
+  const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.82));
+  if(!blob||blob.size>2097152)throw Error('La foto sigue superando 2 MB. Redúcela antes de subirla.');
+  return new File([blob],'evidencia.jpg',{type:'image/jpeg'});
+ }
+ function renderQueue(){
+  if(!queueEl)return;
+  queueEl.replaceChildren();
+  fotoQueue.forEach((q,i)=>{
+   const card=el('div',undefined,'foto-card');
+   const img=el('img');img.src=q.url;img.alt='Vista previa';card.append(img);
+   const punto=el('input');punto.placeholder='Punto (CAM-01)';punto.maxLength=20;
+   const ubic=el('input');ubic.placeholder='Ubicación';ubic.maxLength=180;
+   const desc=el('input');desc.placeholder='Descripción';desc.maxLength=500;
+   q.inputs={punto,ubic,desc};
+   const quitar=el('button','Quitar de la cola','danger');quitar.type='button';
+   quitar.addEventListener('click',()=>{URL.revokeObjectURL(q.url);fotoQueue.splice(i,1);renderQueue();});
+   card.append(punto,ubic,desc,quitar);
+   queueEl.append(card);
+  });
+  if(btnSubir)btnSubir.disabled=!fotoQueue.length;
+  if(fotoStatus)fotoStatus.textContent=fotoQueue.length?fotoQueue.length+' foto(s) listas para subir.':'';
+ }
+ btnFotos?.addEventListener('click',()=>fotoInput&&fotoInput.click());
+ fotoInput?.addEventListener('change',async()=>{
+  const files=[...fotoInput.files];fotoInput.value='';
+  for(const f of files){
+   if(fotoQueue.length>=10){alert('Máximo 10 fotos por carga; sube primero estas.');break;}
+   try{fotoQueue.push({file:await comprimirFoto(f),url:URL.createObjectURL(f)});}catch(e){alert(e.message||'No se pudo preparar la foto.');}
+  }
+  renderQueue();
+ });
+ btnSubir?.addEventListener('click',async()=>{
+  if(!fotoQueue.length)return;
+  btnSubir.disabled=true;if(fotoStatus)fotoStatus.textContent='Subiendo…';
+  try{
+   const fd=new FormData();
+   fd.append('csrf_token',form.querySelector('[name="csrf_token"]').value);
+   fd.append('visita_id',document.getElementById('visita-id').value);
+   fotoQueue.forEach((q,i)=>{fd.append('fotos[]',q.file,'foto'+i+'.jpg');fd.append('foto_punto[]',q.inputs.punto.value.trim());fd.append('foto_ubicacion[]',q.inputs.ubic.value.trim());fd.append('foto_descripcion[]',q.inputs.desc.value.trim());});
+   const r=await fetch('visita_fotos_subir.php',{method:'POST',credentials:'same-origin',body:fd});
+   const d=await r.json();
+   if(!r.ok||!d.ok)throw Error(d.error||'No se pudieron subir las fotos.');
+   location.reload();
+  }catch(e){if(fotoStatus)fotoStatus.textContent=e.message||'Error al subir.';btnSubir.disabled=false;}
+ });
  form.addEventListener('input',e=>{if(!editor.contains(e.target))changed();});
  form.addEventListener('change',e=>{if(!editor.contains(e.target))changed();});
- form.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;if(!form.reportValidity())return;busy=true;const action=e.submitter?.value||'guardar';await Promise.all([...photoJobs]);document.getElementById('visita-datos').value=JSON.stringify(state);const hidden=el('input');hidden.type='hidden';hidden.name='accion';hidden.value=action;form.append(hidden);dirty=false;for(const b of form.querySelectorAll('button'))b.disabled=true;HTMLFormElement.prototype.submit.call(form);});
+ form.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;if(!form.reportValidity())return;busy=true;const action=e.submitter?.value||'guardar';if(fotoQueue.length){e.preventDefault();busy=false;alert('Sube o quita las fotos pendientes antes de guardar.');return;}document.getElementById('visita-datos').value=JSON.stringify(state);const hidden=el('input');hidden.type='hidden';hidden.name='accion';hidden.value=action;form.append(hidden);dirty=false;for(const b of form.querySelectorAll('button'))b.disabled=true;HTMLFormElement.prototype.submit.call(form);});
  document.getElementById('convert-form')?.addEventListener('submit',e=>{if(dirty){e.preventDefault();alert('Guarda primero tus cambios como listos.');}else if(!confirm('Se abrirá un borrador con precios en cero. Revisa y completa sus importes antes de emitir.'))e.preventDefault();});
  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
  render();

@@ -92,9 +92,57 @@ function ojv_storage(): string {
     if(!is_dir($p)&&!mkdir($p,0700,true)&&!is_dir($p))throw new RuntimeException('No se pudo crear la carpeta de evidencias.');
     return $p;
 }
-function ojv_save(PDO $pdo,int $id,int $user,int $version,array $raw,array $post,array $files,string $author,bool $ready): int {
+function ojv_schema_upgrade(PDO $pdo): void {
+    try{$cols=$pdo->query('SHOW COLUMNS FROM oj_visita_fotos')->fetchAll(PDO::FETCH_COLUMN);}catch(Throwable $e){return;}
+    foreach(['thumb'=>'VARCHAR(80) NULL AFTER mime','lat'=>'VARCHAR(24) NULL AFTER thumb','lng'=>'VARCHAR(24) NULL AFTER lat'] as $c=>$def)
+        if(!in_array($c,$cols,true)){$pdo->exec("ALTER TABLE oj_visita_fotos ADD COLUMN `$c` $def");$cols[]=$c;}
+}
+function ojv_make_thumb(string $src,string $dst): bool {
+    if(!function_exists('imagecreatefromstring'))return false;
+    $im=@imagecreatefromstring((string)@file_get_contents($src));
+    if(!$im)return false;
+    $w=imagesx($im);$h=imagesy($im);
+    if($w<1||$h<1){imagedestroy($im);return false;}
+    $ratio=min(1,480/max($w,$h));$tw=max(1,(int)round($w*$ratio));$th=max(1,(int)round($h*$ratio));
+    $t=imagecreatetruecolor($tw,$th);
+    if(!$t){imagedestroy($im);return false;}
+    imagecopyresampled($t,$im,0,0,0,0,$tw,$th,$w,$h);
+    $ok=@imagejpeg($t,$dst,80);
+    imagedestroy($t);imagedestroy($im);
+    return $ok;
+}
+function ojv_read_gps(string $path): array {
+    $lat=null;$lng=null;
+    if(function_exists('exif_read_data')){
+        $ex=@exif_read_data($path);
+        if(is_array($ex)&&!empty($ex['GPSLatitude'])&&!empty($ex['GPSLongitude'])&&isset($ex['GPSLatitudeRef'],$ex['GPSLongitudeRef'])){
+            $conv=static function($parts){$d=0.0;foreach([1,60,3600] as $i=>$den)$d+=((float)($parts[$i]??0))/$den;return $d;};
+            $la=$conv($ex['GPSLatitude'])*($ex['GPSLatitudeRef']==='S'?-1:1);
+            $lo=$conv($ex['GPSLongitude'])*($ex['GPSLongitudeRef']==='W'?-1:1);
+            $lat=(string)round($la,6);$lng=(string)round($lo,6);
+        }
+    }
+    return ['lat'=>$lat,'lng'=>$lng];
+}
+function ojv_store_foto(PDO $pdo,int $visitaId,int $user,string $tmp,int $size,string $ubicacion,string $descripcion,string $punto): array {
+    if(!is_string($tmp)||$tmp===''||!is_uploaded_file($tmp)||$size>2097152)throw new InvalidArgumentException('Cada foto debe pesar hasta 2 MB.');
+    $info=@getimagesize($tmp);$mime=(new finfo(FILEINFO_MIME_TYPE))->file($tmp);
+    if(!$info||!in_array($mime,['image/jpeg','image/png'],true)||$mime!==($info['mime']??'')||$info[0]*$info[1]>24000000)throw new InvalidArgumentException('Usa JPG/PNG válidos de hasta 24 megapíxeles.');
+    $name=bin2hex(random_bytes(24)).'.bin';$path=ojv_storage().'/'.$name;
+    if(!move_uploaded_file($tmp,$path))throw new RuntimeException('No se pudo guardar la foto.');
+    @chmod($path,0600);
+    $thumbName=$name.'.thumb.jpg';
+    $hasThumb=ojv_make_thumb($path,ojv_storage().'/'.$thumbName)&&is_file(ojv_storage().'/'.$thumbName);
+    $gps=ojv_read_gps($path);
+    $q=$pdo->prepare('INSERT INTO oj_visita_fotos (visita_id,usuario_id,archivo,mime,thumb,lat,lng,creado_en) VALUES (?,?,?,?,?,?,?,NOW())');
+    $q->execute([$visitaId,$user,$name,$mime,$hasThumb?$thumbName:null,$gps['lat'],$gps['lng']]);
+    return ['id'=>(int)$pdo->lastInsertId(),'ubicacion'=>$ubicacion,'descripcion'=>$descripcion,'punto'=>$punto,'lat'=>$gps['lat'],'lng'=>$gps['lng'],'ruta'=>$path];
+}
+function ojv_save(PDO $pdo,int $id,int $user,int $version,array $raw,array $post,array $files,string $author,string $state='borrador'): int {
+    if(!in_array($state,['borrador','listo','programada'],true))throw new InvalidArgumentException('Estado no válido.');
     $d=ojv_validate($raw);$newFiles=[];
-    if($ready&&($pending=ojv_pending($d)))throw new InvalidArgumentException('Falta completar: '.implode('; ',array_slice($pending,0,12)));
+    if($state==='listo'&&($pending=ojv_pending($d)))throw new InvalidArgumentException('Falta completar: '.implode('; ',array_slice($pending,0,12)));
+    if($state==='programada'&&$d['general']['fecha_deseada']==='')throw new InvalidArgumentException('Indica la fecha deseada para programar la visita.');
     if($d['general']['proyecto']==='')$d['general']['proyecto']='Visita sin título';
     $pdo->beginTransaction();
     try {
@@ -108,23 +156,8 @@ function ojv_save(PDO $pdo,int $id,int $user,int $version,array $raw,array $post
         foreach($remove as $x)ojv_id($x);
         foreach($existing['form']['fotos']??[] as $f)if(!in_array((string)$f['id'],array_map('strval',$remove),true))$d['fotos'][]=$f;
         if(!$id){$q=$pdo->prepare("INSERT INTO oj_visitas (usuario_id,cliente_id,titulo,cliente_nombre,estado,version,datos,creado_en,actualizado_en) VALUES (?,?,?,?,?,1,'{}',NOW(),NOW())");$q->execute([$user,$d['cliente_id']?:null,$d['general']['proyecto'],$d['general']['cliente_nombre'],'borrador']);$id=(int)$pdo->lastInsertId();}
-        if(isset($files['fotos'])){
-            $up=$files['fotos'];if(!is_array($up['error']??null)||count($up['error'])>3)throw new InvalidArgumentException('Máximo 3 fotos nuevas por guardado.');
-            foreach($up['error'] as $i=>$err){
-                if($err===UPLOAD_ERR_NO_FILE)continue;
-                if($err!==UPLOAD_ERR_OK)throw new InvalidArgumentException('La fotografía no se recibió completa. Reduce su tamaño e inténtalo de nuevo.');
-                $tmp=$up['tmp_name'][$i]??'';
-                if(!is_string($tmp)||!is_uploaded_file($tmp)||filesize($tmp)>2097152)throw new InvalidArgumentException('Cada foto debe pesar hasta 2 MB.');
-                $info=@getimagesize($tmp);$mime=(new finfo(FILEINFO_MIME_TYPE))->file($tmp);
-                if(!$info||!in_array($mime,['image/jpeg','image/png'],true)||$mime!==($info['mime']??'')||$info[0]*$info[1]>24000000)throw new InvalidArgumentException('Usa JPG/PNG válidos de hasta 24 megapíxeles.');
-                $name=bin2hex(random_bytes(24)).'.bin';$path=ojv_storage().'/'.$name;
-                if(!move_uploaded_file($tmp,$path))throw new RuntimeException('No se pudo guardar la foto.');$newFiles[]=$path;@chmod($path,0600);
-                $q=$pdo->prepare('INSERT INTO oj_visita_fotos (visita_id,usuario_id,archivo,mime,creado_en) VALUES (?,?,?,?,NOW())');$q->execute([$id,$user,$name,$mime]);
-                $d['fotos'][]=['id'=>(int)$pdo->lastInsertId(),'ubicacion'=>ojv_text($post['foto_ubicacion'][$i]??'',180),'descripcion'=>ojv_text($post['foto_descripcion'][$i]??'',500)];
-            }
-        }
         if(count($d['fotos'])>20)throw new InvalidArgumentException('Máximo 20 fotografías activas por visita.');
-        $v=$existing?$version+1:1;$json=ojv_json($d);$state=$ready?'listo':'borrador';
+        $v=$existing?$version+1:1;$json=ojv_json($d);
         $q=$pdo->prepare('UPDATE oj_visitas SET cliente_id=?,titulo=?,cliente_nombre=?,estado=?,version=?,datos=?,actualizado_en=NOW() WHERE id=? AND usuario_id=?');$q->execute([$d['cliente_id']?:null,$d['general']['proyecto'],$d['general']['cliente_nombre'],$state,$v,$json,$id,$user]);
         $q=$pdo->prepare('INSERT INTO oj_visita_versiones (visita_id,version,datos,autor,creado_en) VALUES (?,?,?,?,NOW())');$q->execute([$id,$v,$json,substr($author,0,180)]);$pdo->commit();return $id;
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();foreach($newFiles as $p)@unlink($p);throw $e;}
@@ -183,7 +216,21 @@ function ojv_report(array $v,bool $client=false,bool $pdf=false): string {
         }$out.='</table>';}
     }
     if(!$client){$out.='<h2>Conceptos preliminares (sin precio)</h2><table>';foreach(ojv_items($d) as $it)$out.='<tr><th>'.ojv_e($it['cantidad']).'</th><td>'.ojv_e($it['concepto']).'</td></tr>';$out.='</table>';
-        if($d['fotos']){$out.='<h2>Fotografías de evidencia</h2>';foreach($d['fotos'] as $f){$out.='<div class="foto"><p>'.ojv_e($f['ubicacion']).' - '.ojv_e($f['descripcion']).'</p>';if(!$pdf)$out.='<img src="visita_foto.php?id='.(int)$f['id'].'" alt="Evidencia">';elseif(isset($f['src']))$out.='<img src="'.ojv_e($f['src']).'" alt="Evidencia">';$out.='</div>';}}
+        if(!empty($d['fotos'])){
+            $grupos=[];foreach($d['fotos'] as $f){$grupos[($f['punto']??'')?:'Sin punto'][]=$f;}
+            $out.='<h2>Fotografías de evidencia</h2>';
+            foreach($grupos as $punto=>$fotos){
+                $out.='<h3>'.ojv_e($punto).'</h3>';
+                foreach($fotos as $f){
+                    $out.='<div class="foto"><p>'.ojv_e($f['ubicacion']??'').' - '.ojv_e($f['descripcion']??'');
+                    if(!empty($f['lat'])&&!empty($f['lng']))$out.=' · GPS '.ojv_e($f['lat'].','.$f['lng']);
+                    $out.='</p>';
+                    if(!$pdf)$out.='<img src="visita_foto.php?id='.(int)$f['id'].'&thumb=1" alt="Evidencia">';
+                    elseif(isset($f['src']))$out.='<img src="'.ojv_e($f['src']).'" alt="Evidencia">';
+                    $out.='</div>';
+                }
+            }
+        }
     }
     $out.='<p>Esta visita registra una evaluación previa. No constituye aceptación de precios ni autorización de trabajos. La cotización se revisa y acepta por separado.</p>';
     return '<!doctype html><html lang="es"><meta charset="utf-8"><title>'.ojv_e($folio).'</title><style>body{font:12px DejaVu Sans,Arial;color:#17334b;margin:24px}h1{font-size:21px}h2{font-size:15px;border-bottom:2px solid #82b60b;margin-top:22px}table{width:100%;border-collapse:collapse;margin:8px 0 15px}th,td{border:1px solid #d5dfe5;padding:7px;text-align:left;vertical-align:top;word-wrap:break-word}th{width:32%;background:#edf3f6}img{max-width:100%;max-height:280px}.foto{page-break-inside:avoid}tr{page-break-inside:avoid}h2{page-break-after:avoid}@media print{.no-print{display:none}}</style><body>'.$out.'</body></html>';

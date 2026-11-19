@@ -5,8 +5,10 @@ try{
     $v=ojv_load($pdo,ojv_id($_GET['id']??null),(int)$_SESSION['usuario_id'],ojv_id($_GET['version']??null,true));$client=($_GET['cliente']??'')==='1';$pdf=($_GET['pdf']??'')==='1';
     if($pdf&&!$client){
         foreach($v['form']['fotos'] as &$f){
-            $q=$pdo->prepare('SELECT archivo,mime FROM oj_visita_fotos WHERE id=? AND visita_id=? AND usuario_id=?');$q->execute([$f['id'],$v['id'],(int)$_SESSION['usuario_id']]);$row=$q->fetch(PDO::FETCH_ASSOC);
-            if($row&&preg_match('/^[a-f0-9]{48}\.bin$/D',$row['archivo'])){$path=__DIR__.'/app/visitas_fotos/'.$row['archivo'];if(is_file($path))$f['src']='data:'.$row['mime'].';base64,'.base64_encode(file_get_contents($path));}
+            $q=$pdo->prepare('SELECT archivo,thumb FROM oj_visita_fotos WHERE id=? AND visita_id=? AND usuario_id=?');$q->execute([$f['id'],$v['id'],(int)$_SESSION['usuario_id']]);$row=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$row)continue;
+            $rel=!empty($row['thumb'])&&preg_match('/^[a-f0-9]{48}\.bin\.thumb\.jpg$/D',$row['thumb'])&&is_file(__DIR__.'/app/visitas_fotos/'.$row['thumb'])?$row['thumb']:$row['archivo'];
+            if(preg_match('/^[a-f0-9]{48}\.bin(\.thumb\.jpg)?$/D',$rel)){$path=__DIR__.'/app/visitas_fotos/'.$rel;if(is_file($path))$f['src']=$path;}
         }unset($f);
     }
     $html=ojv_report($v,$client,$pdf);

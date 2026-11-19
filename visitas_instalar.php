@@ -7,6 +7,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     require_post_csrf();
     try{
         foreach(explode(';',file_get_contents(__DIR__.'/MIGRACION_VISITAS.sql')) as $sql)if(trim($sql)!=='')$pdo->exec($sql);
+        ojv_schema_upgrade($pdo);
+        foreach(explode(';',file_get_contents(__DIR__.'/MIGRACION_PLANOS.sql')) as $sql)if(trim($sql)!=='')$pdo->exec($sql);
         require_once __DIR__.'/app/borradores.php';oj_borradores_schema($pdo);
         require_once __DIR__.'/app/clientes.php';oj_clientes_schema($pdo);
         ojv_storage();$message='Instalación completa. Ya puedes abrir Visitas técnicas.';

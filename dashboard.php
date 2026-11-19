@@ -119,7 +119,7 @@ function oj_panel_link($url, $title, $description = '', $icon = '+') {
     if ($description !== '') echo '<small>'.oj_panel_e($description).'</small>';
     echo '</span><span class="work-arrow" aria-hidden="true">›</span></a>';
 }
-$visitasRecientes = []; $visitasListas = []; $visitasDisponibles = true;
+$visitasRecientes = []; $visitasListas = []; $visitasProgramadas = []; $visitasDisponibles = true;
 try {
     $qVisitas = $pdo->prepare('SELECT id,titulo,cliente_nombre,estado,actualizado_en FROM oj_visitas WHERE usuario_id=? ORDER BY actualizado_en DESC,id DESC LIMIT 5');
     $qVisitas->execute([(int)$_SESSION['usuario_id']]);
@@ -127,13 +127,16 @@ try {
     $qListas = $pdo->prepare("SELECT id,titulo,cliente_nombre,estado,actualizado_en FROM oj_visitas WHERE usuario_id=? AND estado='listo' ORDER BY actualizado_en DESC,id DESC LIMIT 5");
     $qListas->execute([(int)$_SESSION['usuario_id']]);
     $visitasListas = $qListas->fetchAll(PDO::FETCH_ASSOC);
+    $qProg = $pdo->prepare("SELECT id,titulo,cliente_nombre,estado,actualizado_en, JSON_UNQUOTE(JSON_EXTRACT(datos,'$.general.fecha_deseada')) AS fecha FROM oj_visitas WHERE usuario_id=? AND estado='programada' AND JSON_UNQUOTE(JSON_EXTRACT(datos,'$.general.fecha_deseada'))<>'' ORDER BY fecha ASC, id DESC LIMIT 5");
+    $qProg->execute([(int)$_SESSION['usuario_id']]);
+    $visitasProgramadas = $qProg->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) { $visitasDisponibles = false; }
 function oj_panel_visitas($rows, $available) {
     if (!$available) { echo '<p class="work-empty">No se pudo cargar el resumen de visitas. <a href="visitas.php">Abrir visitas técnicas</a>.</p>'; return; }
     if (!$rows) { echo '<p class="work-empty">No hay visitas para mostrar en esta sección.</p>'; return; }
     echo '<ul class="work-visits">';
     foreach ($rows as $v) {
-        echo '<li><a href="visitas.php?id='.(int)$v['id'].'"><span><strong>'.oj_panel_e($v['cliente_nombre'] ?: 'Sin cliente').'</strong><small>'.oj_panel_e($v['titulo']).' · VT-'.str_pad((string)$v['id'],5,'0',STR_PAD_LEFT).'</small></span><span class="work-status">'.($v['estado']==='listo'?'Lista':'Borrador').'</span></a></li>';
+        echo '<li><a href="visitas.php?id='.(int)$v['id'].'"><span><strong>'.oj_panel_e($v['cliente_nombre'] ?: 'Sin cliente').'</strong><small>'.oj_panel_e($v['titulo']).' · VT-'.str_pad((string)$v['id'],5,'0',STR_PAD_LEFT).'</small></span><span class="work-status">'.($v['estado']==='listo'?'Lista':($v['estado']==='programada'?'Programada':'Borrador')).'</span></a></li>';
     }
     echo '</ul>';
 }
@@ -381,6 +384,7 @@ tbody tr:nth-child(even){
         </div>
         <div class="work-continue"><span>Continuar trabajo</span><a href="borradores.php">Mis borradores</a><a href="#visitas-listas">Visitas listas para cotizar</a><a href="#documentos">Documentos emitidos</a><a href="solicitudes.php">Solicitudes</a></div>
         <details class="work-box" id="visitas-listas"><summary>Visitas listas para cotizar</summary><p class="work-hint">Últimas 5 con estado listo. Abre la visita para preparar o retomar su cotización.</p><?php oj_panel_visitas($visitasListas,$visitasDisponibles); ?></details>
+        <details class="work-box" id="visitas-programadas"><summary>Próximas visitas programadas</summary><p class="work-hint">Últimas 5 con estado programada y fecha definida.</p><?php oj_panel_visitas($visitasProgramadas,$visitasDisponibles); ?></details>
     </section>
     <section class="work-area" data-work-section="campo" <?=$modo!=='campo'?'hidden':''?> aria-labelledby="field-title">
         <div class="work-heading"><div><p class="work-kicker">TRABAJO DE CAMPO</p><h2 id="field-title">Visita, registra y continúa</h2><p>Accesos amplios para trabajar desde el celular.</p></div><a class="btn work-primary" href="visitas.php?nueva=1">+ Nueva visita técnica</a></div>

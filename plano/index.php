@@ -8,7 +8,8 @@ $csrfPlano = csrf_token();
   <meta charset="UTF-8">
   <title>Plano CCTV - Ojo Jarocho</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="../assets/vendor/fabric.min.js"></script>
+  <script>if(!window.fabric){document.write('<script src="https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/fabric.js\/5.3.1\/fabric.min.js"><\/script>');}</script>
 
   <style>
     body { margin:0; font-family:Arial,sans-serif; background:#f4f6f8; color:#333; }
@@ -62,6 +63,8 @@ $csrfPlano = csrf_token();
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const cotizacionID = urlParams.get('id') || '';
+  const visitaID = urlParams.get('visita') || '';
+  const planoID = urlParams.get('plano_id') || '';
 
   const canvas = new fabric.Canvas('plano', {
     backgroundColor: '#ffffff',
@@ -72,9 +75,9 @@ $csrfPlano = csrf_token();
   canvas.renderAll();
 
   function cargarPlanoGuardado() {
-    if (!cotizacionID) return;
+    if (!cotizacionID && !planoID) return;
 
-    const rutaPlano = 'planos/plano_' + cotizacionID + '.png?v=' + new Date().getTime();
+    const rutaPlano = planoID ? ('ver.php?id=' + planoID + '&v=' + new Date().getTime()) : ('planos/plano_' + cotizacionID + '.png?v=' + new Date().getTime());
 
     fabric.Image.fromURL(rutaPlano, function(img) {
       if (!img) return;
@@ -240,7 +243,7 @@ $csrfPlano = csrf_token();
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: 'imagen=' + encodeURIComponent(dataURL) + '&id=' + encodeURIComponent(cotizacionID) + '&csrf_token=' + encodeURIComponent(<?php echo json_encode($csrfPlano); ?>)
+      body: 'imagen=' + encodeURIComponent(dataURL) + '&id=' + encodeURIComponent(cotizacionID) + '&visita_id=' + encodeURIComponent(visitaID) + '&csrf_token=' + encodeURIComponent(<?php echo json_encode($csrfPlano); ?>)
     })
     .then(res => res.json())
     .then(data => {
