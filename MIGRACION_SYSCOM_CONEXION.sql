@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS cotizador_syscom_conexion (
+ usuario_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+ credenciales TEXT NOT NULL,
+ token TEXT NOT NULL,
+ token_hasta BIGINT UNSIGNED NOT NULL,
+ version INT UNSIGNED NOT NULL DEFAULT 1,
+ actualizado_en DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS cotizador_syscom_preferencias (
+ usuario_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+ tipo_cambio DECIMAL(7,4) NOT NULL,
+ metodo VARCHAR(16) NOT NULL,
+ porcentaje DECIMAL(7,2) NOT NULL,
+ version INT UNSIGNED NOT NULL DEFAULT 1,
+ actualizado_en DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
