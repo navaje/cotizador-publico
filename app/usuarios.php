@@ -27,6 +27,9 @@ function oj_limit(PDO $pdo, string $scope, string $identity, int $max): bool {
     $s = $pdo->prepare('SELECT intentos FROM oj_acceso_intentos WHERE clave = ?'); $s->execute([$key]);
     return (int)$s->fetchColumn() <= $max;
 }
+function oj_limit_reset(PDO $pdo, string $scope, string $identity): void {
+    $pdo->prepare('DELETE FROM oj_acceso_intentos WHERE clave = ?')->execute([hash('sha256', $scope . ':' . $identity)]);
+}
 function oj_recovery_send(string $email, string $token): bool {
     // URL fija: no se construye con Host ni con encabezados del visitante.
     $url = 'https://ojojarocho.online/cotizador/restablecer_password.php?token=' . rawurlencode($token);

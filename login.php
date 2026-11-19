@@ -1,30 +1,45 @@
 <?php
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/app/usuarios.php';
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_post_csrf();
-    $usuario = $_POST['usuario'] ?? '';
-    $password = $_POST['password'] ?? '';
+    oj_users_install($pdo);
+    $usuario = trim((string)($_POST['usuario'] ?? ''));
+    $password = (string)($_POST['password'] ?? '');
+    $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+    $ahora = (int)floor(time() / 3600);
+    $pdo->prepare('DELETE FROM oj_acceso_intentos WHERE ventana < ?')->execute([$ahora - 2]);
+    $ipOk = oj_limit($pdo, 'login_ip', $ip, 10);
+    $userOk = oj_limit($pdo, 'login_user', strtolower($usuario), 5);
 
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE usuario = :usuario AND activo = 1 LIMIT 1");
-    $stmt->execute([':usuario' => $usuario]);
-    $user = $stmt->fetch();
-
-    if ($user && password_verify($password, $user['password_hash'])) {
-        session_regenerate_id(true);
-        $_SESSION['usuario_id'] = $user['id'];
-        $_SESSION['usuario_nombre'] = $user['nombre'];
-        $_SESSION['usuario_rol'] = $user['rol'];
-        $_SESSION['usuario_password_fingerprint'] = hash('sha256', $user['password_hash']);
-        $_SESSION['ultima_actividad'] = time();
-
-        header('Location: dashboard.php');
-        exit;
+    if (!$ipOk || !$userOk) {
+        http_response_code(429);
+        $error = 'Demasiados intentos. Espera un momento antes de reintentar.';
     } else {
-        $error = 'Usuario o contraseña incorrectos';
+        $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE usuario = :usuario AND activo = 1 LIMIT 1");
+        $stmt->execute([':usuario' => $usuario]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            oj_limit_reset($pdo, 'login_user', strtolower($usuario));
+            oj_limit_reset($pdo, 'login_ip', $ip);
+            session_regenerate_id(true);
+            $_SESSION['usuario_id'] = $user['id'];
+            $_SESSION['usuario_nombre'] = $user['nombre'];
+            $_SESSION['usuario_rol'] = $user['rol'];
+            $_SESSION['usuario_password_fingerprint'] = hash('sha256', $user['password_hash']);
+            $_SESSION['ultima_actividad'] = time();
+
+            header('Location: dashboard.php');
+            exit;
+        } else {
+            usleep(400000);
+            $error = 'Usuario o contraseña incorrectos';
+        }
     }
 }
 ?>

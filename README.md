@@ -27,6 +27,23 @@ Panel de trabajo de Ojo Jarocho: presupuestos, notas de venta, enlace con SYSCOM
 - `index.php` incluye calculadora de almacenamiento CCTV (`assets/calculadora_disco.js`): cámaras × resolución × fps × días × modo → GB/día, TB totales y disco recomendado, con botón para agregar el renglón a la cotización.
 - En el panel SYSCOM hay acceso rápido a los últimos 8 conceptos agregados (localStorage del navegador).
 
+## Seguridad (fase 3)
+
+- `security.php` fija cookie de sesión `HttpOnly`/`SameSite=Lax`/`Secure` (en HTTPS), `session.use_strict_mode` y headers globales: `X-Frame-Options`, `nosniff`, `Referrer-Policy`, CSP y HSTS en HTTPS.
+- `login.php` tiene límite de intentos por IP (10/h) y por usuario (5/h) con `oj_acceso_intentos`, limpieza de ventanas viejas y retardo tras fallo. La recuperación de contraseña ya tenía límite (10/h por IP, 3/h por correo).
+- **Faltan en este repo (están solo en el servidor): `cambiar_password.php` y `restablecer_password.php`** — súbelos sanitizados para completar el respaldo.
+- Si `/cotizador/` tiene `.htaccess` en el servidor, agrega al final (no lo sobrescribas si ya existe):
+
+```
+# Bloquea acceso directo a evidencias, dumps y respaldos
+<FilesMatch "\.(bin|sql|zip|tar|gz|log)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^(db|private_config|config)\.php$">
+  Require all denied
+</FilesMatch>
+```
+
 ## Seguridad
 
 - El repositorio debe ser **privado**.
