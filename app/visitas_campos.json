@@ -1,0 +1,704 @@
+{
+  "general": {
+    "title": "Cliente y visita",
+    "fields": {
+      "proyecto": [
+        "Nombre del proyecto"
+      ],
+      "fecha": [
+        "Fecha de visita",
+        "date"
+      ],
+      "tecnico": [
+        "Técnico responsable"
+      ],
+      "cliente_nombre": [
+        "Nombre del cliente"
+      ],
+      "cliente_telefono": [
+        "Teléfono",
+        "tel"
+      ],
+      "cliente_email": [
+        "Correo",
+        "email"
+      ],
+      "cliente_direccion": [
+        "Dirección / ubicación",
+        "area"
+      ],
+      "mapa": [
+        "Enlace de ubicación"
+      ],
+      "contacto": [
+        "Persona que atiende"
+      ],
+      "horario": [
+        "Horario / acceso"
+      ],
+      "inmueble": [
+        "Tipo de inmueble",
+        "tiles",
+        [
+          "Por definir",
+          "Casa",
+          "Departamento",
+          "Comercio",
+          "Oficina",
+          "Bodega",
+          "Industria",
+          "Terreno",
+          "Otro"
+        ]
+      ],
+      "servicio": [
+        "Motivo",
+        "tiles",
+        [
+          "Por definir",
+          "Instalación nueva",
+          "Ampliación",
+          "Reemplazo",
+          "Mantenimiento",
+          "Diagnóstico"
+        ]
+      ],
+      "necesidad": [
+        "Qué solicita el cliente / problema a resolver",
+        "area"
+      ],
+      "presupuesto": [
+        "Presupuesto aproximado MXN (opcional)",
+        "num"
+      ],
+      "prioridad": [
+        "Prioridad",
+        "select",
+        [
+          "Normal",
+          "Urgente",
+          "Programada"
+        ]
+      ],
+      "fecha_deseada": [
+        "Fecha deseada",
+        "date"
+      ],
+      "marcas": [
+        "Marcas permitidas / norma o política requerida"
+      ],
+      "modo": [
+        "Modo de captura",
+        "select",
+        [
+          "Rápido",
+          "Detallado"
+        ]
+      ]
+    }
+  },
+  "camaras": {
+    "title": "Puntos de cámara",
+    "prefix": "CAM",
+    "limit": 100,
+    "fields": {
+      "id": [
+        "Identificador"
+      ],
+      "ubicacion": [
+        "Área / ubicación"
+      ],
+      "accion": [
+        "Estado del punto",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "objetivo": [
+        "Objetivo",
+        "select",
+        [
+          "Por definir",
+          "Vista general",
+          "Identificar personas",
+          "Caja / mostrador",
+          "Perímetro",
+          "Vehículos",
+          "Leer placas",
+          "Otro"
+        ]
+      ],
+      "tecnologia": [
+        "Tecnología",
+        "tiles",
+        [
+          "Por definir",
+          "Analógica",
+          "IP cableada / PoE",
+          "Wi-Fi",
+          "4G",
+          "Otra"
+        ]
+      ],
+      "tipo": [
+        "Forma",
+        "tiles",
+        [
+          "Por definir",
+          "Bala",
+          "Turret / eyeball",
+          "Domo",
+          "PT",
+          "PTZ",
+          "Panorámica",
+          "Otra"
+        ]
+      ],
+      "resolucion": [
+        "Resolución"
+      ],
+      "modelo": [
+        "Marca, modelo y sufijo / por definir"
+      ],
+      "lente": [
+        "Lente",
+        "select",
+        [
+          "Por definir",
+          "Fijo",
+          "Varifocal",
+          "Varifocal motorizado",
+          "Zoom óptico"
+        ]
+      ],
+      "focal": [
+        "Distancia focal (mm)"
+      ],
+      "distancia": [
+        "Distancia al objetivo (m)",
+        "num"
+      ],
+      "ancho": [
+        "Ancho de escena (m)",
+        "num"
+      ],
+      "altura": [
+        "Altura de montaje (m)",
+        "num"
+      ],
+      "ambiente": [
+        "Ubicación",
+        "select",
+        [
+          "Por definir",
+          "Interior",
+          "Exterior"
+        ]
+      ],
+      "montaje": [
+        "Montaje",
+        "tiles",
+        [
+          "Por definir",
+          "Pared",
+          "Techo",
+          "Poste",
+          "Otro"
+        ]
+      ],
+      "superficie": [
+        "Superficie / material y soporte requerido"
+      ],
+      "luz": [
+        "Iluminación",
+        "select",
+        [
+          "Por revisar",
+          "Suficiente",
+          "Oscuridad",
+          "Contraluz",
+          "Reflejos",
+          "Mixta"
+        ]
+      ],
+      "riesgos": [
+        "Lluvia, salinidad, polvo, calor, golpes y protección"
+      ],
+      "funciones": [
+        "Audio, detección, sirena, luz u otras funciones"
+      ],
+      "alimentacion": [
+        "Alimentación",
+        "select",
+        [
+          "Por definir",
+          "PoE",
+          "Fuente local",
+          "Fuente centralizada",
+          "Batería / solar",
+          "Otra"
+        ]
+      ],
+      "caja": [
+        "Caja de conexiones",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "soporte": [
+        "Soporte adicional",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "wifi_medida": [
+        "Prueba de señal",
+        "select",
+        [
+          "No medida",
+          "Medida",
+          "No aplica"
+        ],
+        "inalambrico"
+      ],
+      "rssi": [
+        "Señal dBm / indicador y equipo usado",
+        "text",
+        null,
+        "inalambrico"
+      ],
+      "banda": [
+        "Banda / SSID o proveedor celular (sin claves)",
+        "text",
+        null,
+        "inalambrico"
+      ],
+      "obstaculos": [
+        "Obstáculos, distancia al AP y estabilidad",
+        "area",
+        null,
+        "inalambrico"
+      ],
+      "notas": [
+        "Observaciones del punto / pruebas pendientes",
+        "area"
+      ]
+    }
+  },
+  "tramos": {
+    "title": "Cableado y canalización",
+    "prefix": "TR",
+    "limit": 150,
+    "fields": {
+      "id": [
+        "Identificador"
+      ],
+      "origen": [
+        "Desde"
+      ],
+      "destino": [
+        "Hasta"
+      ],
+      "puntos": [
+        "Puntos atendidos (CAM-01, CAM-02...)"
+      ],
+      "accion": [
+        "Estado del cableado",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "metros": [
+        "Longitud del recorrido (m)",
+        "num"
+      ],
+      "reserva": [
+        "Reserva adicional por cable (m)",
+        "num"
+      ],
+      "medicion": [
+        "Tipo de medición",
+        "select",
+        [
+          "Pendiente",
+          "Estimado",
+          "Medido"
+        ]
+      ],
+      "cables": [
+        "Número de cables en el tramo",
+        "int"
+      ],
+      "cable": [
+        "Tipo de cable",
+        "select",
+        [
+          "Por definir",
+          "UTP cobre",
+          "Coaxial",
+          "Fibra",
+          "Eléctrico",
+          "Coaxial RG59 + alimentación (siamés)",
+          "Otro"
+        ]
+      ],
+      "presentacion": [
+        "Presentación del cable",
+        "select",
+        [
+          "Por metro / bobina",
+          "Armado con conectores"
+        ]
+      ],
+      "largo_armado": [
+        "Longitud de cada cable armado (m)",
+        "num",
+        null,
+        "armado",
+        18
+      ],
+      "suministro": [
+        "Suministro del cable",
+        "select",
+        [
+          "Cotizar por separado",
+          "Incluido en kit",
+          "Lo proporciona el cliente"
+        ]
+      ],
+      "categoria": [
+        "Categoría / calibre / especificación"
+      ],
+      "instalacion": [
+        "Método",
+        "tiles",
+        [
+          "Por definir",
+          "Aparente fijado",
+          "Canaleta",
+          "Tubo PVC",
+          "Tubo metálico",
+          "Charola",
+          "Subterráneo",
+          "Canalización existente"
+        ]
+      ],
+      "canal_accion": [
+        "Estado de canalización",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "canal_metros": [
+        "Metros de canalización (una sola vez)",
+        "num"
+      ],
+      "diametro": [
+        "Diámetro / capacidad / ocupación"
+      ],
+      "dificultad": [
+        "Perforaciones, pisos, excavación, altura y accesos"
+      ],
+      "notas": [
+        "Pruebas / observaciones del tramo",
+        "area"
+      ]
+    }
+  },
+  "infra": {
+    "title": "Grabación, red y energía",
+    "fields": {
+      "grabador_accion": [
+        "Grabador",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "grabador": [
+        "DVR / XVR / NVR: marca y modelo"
+      ],
+      "canales": [
+        "Canales totales",
+        "int"
+      ],
+      "ocupados": [
+        "Canales ocupados",
+        "int"
+      ],
+      "poe_puertos": [
+        "Puertos PoE disponibles",
+        "int"
+      ],
+      "poe_w": [
+        "Presupuesto PoE disponible (W)",
+        "num"
+      ],
+      "grabacion": [
+        "Grabación",
+        "select",
+        [
+          "Por definir",
+          "Continua",
+          "Eventos",
+          "Mixta"
+        ]
+      ],
+      "dias": [
+        "Días de grabación solicitados",
+        "int"
+      ],
+      "disco_accion": [
+        "Disco",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "disco": [
+        "HDD instalado / propuesto (modelo y capacidad)"
+      ],
+      "bitrate": [
+        "Bitrate total estimado (Mbps)",
+        "num"
+      ],
+      "red": [
+        "Router, switch, AP: ubicación / modelos / puertos"
+      ],
+      "subida": [
+        "Subida medida de internet (Mbps)",
+        "num"
+      ],
+      "fecha_prueba": [
+        "Fecha, equipo y resultado de pruebas de red"
+      ],
+      "mejora_red": [
+        "AP / switch / enlace / fibra adicionales"
+      ],
+      "gabinete_tipo": [
+        "Resguardo",
+        "tiles",
+        [
+          "Por definir",
+          "Sin gabinete",
+          "Caja de resguardo",
+          "Gabinete",
+          "Rack"
+        ]
+      ],
+      "gabinete_accion": [
+        "Estado del resguardo",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "gabinete": [
+        "Ubicación, dimensiones, ventilación, cerradura y accesorios"
+      ],
+      "contacto": [
+        "Contacto eléctrico disponible",
+        "select",
+        [
+          "Por revisar",
+          "Sí",
+          "No",
+          "No aplica"
+        ]
+      ],
+      "punto_nuevo": [
+        "Requiere punto eléctrico nuevo",
+        "select",
+        [
+          "Por revisar",
+          "Sí",
+          "No",
+          "No aplica"
+        ]
+      ],
+      "dist_electrica": [
+        "Distancia del punto eléctrico (m)",
+        "num"
+      ],
+      "electricista": [
+        "Requiere revisión de electricista",
+        "select",
+        [
+          "Por revisar",
+          "Sí",
+          "No",
+          "No aplica"
+        ]
+      ],
+      "tierra": [
+        "Tierra / protecciones verificadas",
+        "select",
+        [
+          "Por revisar",
+          "Sí",
+          "No",
+          "No aplica"
+        ]
+      ],
+      "ups_accion": [
+        "UPS / respaldo",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "ups": [
+        "Equipo a respaldar / potencia / autonomía deseada"
+      ],
+      "monitor_accion": [
+        "Monitor",
+        "select",
+        [
+          "Por definir",
+          "Instalar nuevo",
+          "Reutilizar previa prueba",
+          "Existente / conservar"
+        ]
+      ],
+      "monitor": [
+        "Monitor: ubicación y conexión"
+      ]
+    }
+  },
+  "ejecucion": {
+    "title": "Ejecución y condiciones",
+    "fields": {
+      "acceso": [
+        "Horarios, permisos, azotea, llaves y acompañamiento",
+        "area"
+      ],
+      "altura_trabajo": [
+        "Escalera / andamio / plataforma / equipo especial"
+      ],
+      "obras": [
+        "Resanes, pintura, excavación, movimiento de muebles y limpieza",
+        "area"
+      ],
+      "terceros": [
+        "Trabajos del cliente o terceros",
+        "area"
+      ],
+      "privacidad": [
+        "Áreas fuera del encuadre / máscaras de privacidad",
+        "area"
+      ],
+      "visita_nocturna": [
+        "Requiere prueba nocturna / otra visita",
+        "select",
+        [
+          "Por revisar",
+          "Sí",
+          "No",
+          "No aplica"
+        ]
+      ],
+      "tiempo": [
+        "Tiempo estimado de instalación"
+      ],
+      "tecnicos": [
+        "Técnicos requeridos",
+        "int"
+      ],
+      "notas_internas": [
+        "Notas internas (no pasan al PDF para cliente)",
+        "area"
+      ]
+    }
+  },
+  "cierre": {
+    "title": "Recomendación y pendientes",
+    "fields": {
+      "recomendacion": [
+        "Solución recomendada por el técnico",
+        "area"
+      ],
+      "alternativa": [
+        "Alternativa económica / ampliación",
+        "area"
+      ],
+      "pendientes": [
+        "Pendientes de medición, pruebas o autorización",
+        "area"
+      ],
+      "resueltos": [
+        "Estado de pendientes",
+        "select",
+        [
+          "Hay pendientes",
+          "Resueltos / no hay pendientes"
+        ]
+      ],
+      "exclusiones": [
+        "Exclusiones y límites del alcance",
+        "area"
+      ],
+      "acuerdos": [
+        "Acuerdos revisados durante la visita",
+        "area"
+      ],
+      "recepcion": [
+        "Nombre de quien recibe (no aceptación de cotización)"
+      ]
+    }
+  },
+  "materiales": {
+    "title": "Materiales y trabajos adicionales",
+    "prefix": "MAT",
+    "limit": 100,
+    "fields": {
+      "id": [
+        "Identificador"
+      ],
+      "concepto": [
+        "Descripción / modelo / trabajo"
+      ],
+      "cantidad": [
+        "Cantidad",
+        "int"
+      ],
+      "unidad": [
+        "Unidad (pieza, servicio, metro...)"
+      ],
+      "notas": [
+        "Observaciones"
+      ]
+    }
+  }
+}

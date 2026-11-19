@@ -1,0 +1,17 @@
+.catalogo-wrap{max-width:1050px;margin:24px auto;padding:24px;background:white;border-radius:14px;font-family:Arial,Helvetica,sans-serif;color:#1f2937;box-sizing:border-box}
+body:has(>.catalogo-wrap){margin:0;background:#eef3f8}
+.catalogo-wrap h1,.catalogo-wrap h2{color:#0d3b66}.catalogo-wrap p{line-height:1.5}
+.catalogo-panel{border:1px solid #cfd8e3;border-radius:12px;padding:20px;margin:20px 0}
+.catalogo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.catalogo-wrap label{display:block;font-weight:bold;font-size:14px}.catalogo-wrap input,.catalogo-wrap select{display:block;box-sizing:border-box;width:100%;padding:10px;margin-top:6px;border:1px solid #cfd8e3;border-radius:8px;font-size:16px}
+.catalogo-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:14px 0}
+.catalogo-wrap button,.catalogo-wrap a{display:inline-block;border:0;border-radius:8px;background:#0d3b66;color:white;padding:10px 14px;font-size:14px;text-decoration:none;cursor:pointer}
+.catalogo-fila{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #dbe7f3;overflow-wrap:anywhere}.catalogo-fila p{margin:6px 0;font-size:13px}.catalogo-fila .catalogo-actions{flex-shrink:0}
+.catalogo-ok{padding:14px;background:#dcfce7;color:#166534;border-radius:8px}.catalogo-error{padding:14px;background:#fee2e2;color:#b91c1c;border-radius:8px}
+.catalogo-wrap input:focus,.catalogo-wrap select:focus,.catalogo-wrap button:focus,.catalogo-wrap a:focus{outline:2px solid #82b60b;outline-offset:2px}
+#catalogoEstado{line-height:1.5;color:#0d3b66;font-weight:bold}#catalogoResultados{max-height:420px;overflow:auto}#catalogoResultados button{flex-shrink:0}
+@media(max-width:650px){.catalogo-wrap{margin:10px;padding:16px}.catalogo-grid{grid-template-columns:1fr}.catalogo-fila{align-items:flex-start;flex-wrap:wrap}.catalogo-panel{padding:14px}}
+
+.catalogo-wrap textarea{display:block;box-sizing:border-box;width:100%;padding:10px;margin-top:6px;border:1px solid #cfd8e3;border-radius:8px;font-family:inherit;font-size:16px;resize:vertical}
+.catalogo-wrap textarea:focus{outline:2px solid #82b60b;outline-offset:2px}
+#clientesEstado{color:#0d3b66;line-height:1.5}#clientesResultados{max-height:340px;overflow:auto;margin-bottom:16px}#clientesResultados button{flex-shrink:0}

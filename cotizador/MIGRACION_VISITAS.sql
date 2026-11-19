@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS oj_visitas (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, usuario_id BIGINT UNSIGNED NOT NULL,
+ cliente_id BIGINT UNSIGNED NULL, titulo VARCHAR(180) NOT NULL, cliente_nombre VARCHAR(180) NOT NULL,
+ estado VARCHAR(20) NOT NULL DEFAULT 'borrador', version INT UNSIGNED NOT NULL DEFAULT 1,
+ datos LONGTEXT NOT NULL, creado_en DATETIME NOT NULL, actualizado_en DATETIME NOT NULL,
+ INDEX idx_ojv_usuario (usuario_id, actualizado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS oj_visita_versiones (
+ visita_id BIGINT UNSIGNED NOT NULL, version INT UNSIGNED NOT NULL, datos LONGTEXT NOT NULL,
+ autor VARCHAR(180) NOT NULL, creado_en DATETIME NOT NULL, PRIMARY KEY (visita_id, version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS oj_visita_fotos (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, visita_id BIGINT UNSIGNED NOT NULL,
+ usuario_id BIGINT UNSIGNED NOT NULL, archivo VARCHAR(80) NOT NULL, mime VARCHAR(30) NOT NULL,
+ creado_en DATETIME NOT NULL, UNIQUE KEY idx_ojv_archivo (archivo), INDEX idx_ojv_foto_visita (visita_id, usuario_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS oj_visita_cotizaciones (
+ visita_id BIGINT UNSIGNED NOT NULL, version INT UNSIGNED NOT NULL, borrador_id BIGINT UNSIGNED NOT NULL,
+ creado_en DATETIME NOT NULL, PRIMARY KEY (visita_id, version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
