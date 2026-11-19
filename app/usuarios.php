@@ -34,7 +34,7 @@ function oj_recovery_send(string $email, string $token): bool {
     $wp = dirname(__DIR__, 2) . '/wp-load.php';
     if (is_file($wp)) require_once $wp;
     if (function_exists('wp_mail')) return wp_mail($email, 'Recuperar acceso - Ojo Jarocho', $body);
-    return mail($email, 'Recuperar acceso - Ojo Jarocho', $body, "From: Ojo Jarocho <ventas@ojojarocho.online>\r\nContent-Type: text/plain; charset=UTF-8");
+    return mail($email, 'Recuperar acceso - Ojo Jarocho', $body, "From: Ojo Jarocho <contacto@ojojarocho.online>\r\nContent-Type: text/plain; charset=UTF-8");
 }
 function oj_token(PDO $pdo, string $raw, bool $lock = false) {
     if (!preg_match('/^[a-f0-9]{64}$/D', $raw)) return false;

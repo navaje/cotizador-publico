@@ -1,0 +1,33 @@
+# Respaldos, binarios y logs
+*.zip
+*.tar.gz
+*.pdf
+*.log
+error_log
+
+# Datos de clientes
+pdfs/
+storage/
+plano/planos/
+visitas_fotos/*
+!visitas_fotos/index.php
+app/visitas_fotos/*
+!app/visitas_fotos/index.php
+
+# Credenciales y configuracion real (usa los *.ejemplo.php y completa en el servidor)
+.env
+db.php
+private_config.php
+app/config.php
+app/db.php
+facturacion/config.php
+bancos/config.php
+
+# Dumps con datos reales
+ACTUALIZAR_EMPRESA.sql
+
+# Herramientas de instalacion/prueba y respaldos viejos
+crear_hash.php
+dashboard-respaldo.php
+testpdf.php
+public/

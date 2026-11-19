@@ -12,7 +12,7 @@ function ojso_directorio_clave(): string {
     $partes=explode(DIRECTORY_SEPARATOR,$raiz);$indice=array_search('public_html',$partes,true);
     if($indice!==false)$padre=realpath(implode(DIRECTORY_SEPARATOR,array_slice($partes,0,$indice)));
     // Raíz adicional confirmada en el Administrador de archivos de esta cuenta.
-    elseif($raiz==='/home4/jesusna1/ojojarocho.online')$padre=realpath('/home4/jesusna1');
+    elseif($raiz==='/home/TU_USUARIO_CPANEL/ojojarocho.online')$padre=realpath('/home/TU_USUARIO_CPANEL');
     elseif(in_array(basename($raiz),['htdocs','httpdocs','www'],true))$padre=realpath(dirname($raiz));
     else throw new RuntimeException('No se pudo identificar la carpeta privada de esta cuenta de hosting. Se necesita revisar la ubicación pública del dominio antes de guardar credenciales.');
     if (!$padre||$padre===$raiz||$padre===DIRECTORY_SEPARATOR) throw new RuntimeException('El hosting no ofrece una ubicación privada verificable para la clave de cifrado.');

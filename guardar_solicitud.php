@@ -165,13 +165,13 @@ if ($cliente_email !== '' && filter_var($cliente_email, FILTER_VALIDATE_EMAIL)) 
     $cabecerasCorreo[] = 'Reply-To: ' . $cliente_nombre . ' <' . $cliente_email . '>';
 }
 if (function_exists('wp_mail')) {
-    if (!wp_mail('ventas@ojojarocho.online', $asuntoCorreo, $cuerpoCorreo, $cabecerasCorreo)) {
+    if (!wp_mail('contacto@ojojarocho.online', $asuntoCorreo, $cuerpoCorreo, $cabecerasCorreo)) {
         error_log('No se pudo enviar la notificación de la solicitud ' . $folio . ' mediante wp_mail.');
     }
 } else {
-    $cabeceras = "From: Ojo Jarocho <ventas@ojojarocho.online>\r\n";
+    $cabeceras = "From: Ojo Jarocho <contacto@ojojarocho.online>\r\n";
     if ($cabecerasCorreo) $cabeceras .= implode("\r\n", $cabecerasCorreo) . "\r\n";
-    if (!@mail('ventas@ojojarocho.online', $asuntoCorreo, $cuerpoCorreo, $cabeceras)) {
+    if (!@mail('contacto@ojojarocho.online', $asuntoCorreo, $cuerpoCorreo, $cabeceras)) {
         error_log('No se pudo enviar la notificación de la solicitud ' . $folio . ' mediante mail.');
     }
 }
@@ -184,7 +184,7 @@ $mensajeWhatsApp = "Hola Ojo Jarocho, acabo de enviar una solicitud de servicio.
     ($producto_nombre !== '' ? "Producto: " . $producto_nombre . "\n" : '') .
     ($producto_url !== '' ? "Enlace: " . $producto_url . "\n" : '') .
     "\nDeseo confirmar la recepción y recibir información sobre el servicio.";
-$whatsappUrl = 'https://wa.me/529999185208?text=' . urlencode($mensajeWhatsApp);
+$whatsappUrl = 'https://wa.me/5210000000000?text=' . urlencode($mensajeWhatsApp);
 ?>
 <!DOCTYPE html>
 <html lang="es">

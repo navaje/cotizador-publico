@@ -1,4 +1,4 @@
-// Ejecutar desde navaje@gmail.com. Requiere el servicio avanzado Gmail (v1).
+// Ejecutar desde tu-correo@gmail.com. Requiere el servicio avanzado Gmail (v1).
 // Usa permiso de solo lectura: no modifica ni envía correos.
 function sincronizarBanorte() {
   const lock = LockService.getScriptLock();
@@ -7,7 +7,7 @@ function sincronizarBanorte() {
     const props = PropertiesService.getScriptProperties();
     const url = props.getProperty('OJ_URL');
     const secret = props.getProperty('OJ_SECRETO');
-    const expected = 'navaje@gmail.com';
+    const expected = 'tu-correo@gmail.com';
     if (url !== 'https://ojojarocho.online/cotizador/banco_receptor.php' || !/^[a-f0-9]{64}$/.test(secret || '')) throw new Error('Configura OJ_URL y OJ_SECRETO en las propiedades del proyecto.');
     if (Gmail.Users.getProfile('me').emailAddress.toLowerCase() !== expected) throw new Error('Autoriza este proyecto desde ' + expected);
     const started = Date.now();
@@ -15,7 +15,7 @@ function sincronizarBanorte() {
     // Primera ejecución: últimos 30 días. Las siguientes solapan 48 horas;
     // si se interrumpe el servicio, se retoma desde la última revisión exitosa.
     const after = Math.floor((last ? last - 48*3600000 : started - 30*86400000) / 1000);
-    const query = '{from:notificacionesbanorte@banorte.com from:notificaciones@banorte.com} after:' + after;
+    const query = '{from:tu-cuenta@banorte.com from:tu-cuenta@banorte.com} after:' + after;
     let pageToken, failures = 0, count = 0, deferred = false;
     let done = JSON.parse(props.getProperty('OJ_PROCESADOS') || '[]');
     const known = new Set(done);
