@@ -2,6 +2,8 @@
 
 Panel de trabajo de Ojo Jarocho: presupuestos, notas de venta, enlace con SYSCOM, facturacion, recibos, bancos y visitas.
 
+📖 **Instalación y uso completos (público, sin datos reales): ver [INSTALACION_Y_USO.md](INSTALACION_Y_USO.md)**
+
 ## Instalacion en HostGator
 
 1. Sube el codigo a `/public_html/cotizador/` **sin** los archivos bloqueados por `.gitignore`.
